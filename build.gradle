@@ -22,9 +22,20 @@ dependencies {
  //   implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+
+    // Schaltet XML-Antworten frei (Content Negotiation ueber den Accept-Header).
+    // Spring Boot 4 nutzt Jackson 3 -> Gruppe ist "tools.jackson", nicht mehr
+    // "com.fasterxml.jackson". Die alte Koordinate wird vom Boot-4-BOM nicht
+    // mehr verwaltet und haette keine Version.
+    implementation 'tools.jackson.dataformat:jackson-dataformat-xml'
+
+    // DevTools bewusst deaktiviert: sein Restart-Watcher haelt unter Windows
+    // Verzeichnis-Handles auf build/classes/java/main und blockiert damit das
+    // Loeschen durch "clean". Ohne Auto-Build bringt DevTools ohnehin keinen
+    // Vorteil - der Rerun-Button macht dasselbe.
+ //   developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+ //   testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
