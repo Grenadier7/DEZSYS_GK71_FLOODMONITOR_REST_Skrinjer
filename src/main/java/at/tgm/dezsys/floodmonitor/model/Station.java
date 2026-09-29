@@ -1,5 +1,7 @@
 package at.tgm.dezsys.floodmonitor.model;
 
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * Eine Messstation an einem Flussabschnitt.
  * <p>
@@ -14,6 +16,7 @@ package at.tgm.dezsys.floodmonitor.model;
  * @param criticalWaterLevel ab diesem Wasserstand gilt CRITICAL (in cm)
  * @param isActive           deaktivierte Stationen erzeugen keine Messwerte
  */
+@JacksonXmlRootElement(localName = "station")
 public record Station(
         String id,
         String name,

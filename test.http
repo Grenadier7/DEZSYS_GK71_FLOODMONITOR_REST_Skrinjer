@@ -1,11 +1,176 @@
-### Alle Stationen als JSON
+### 1. Liste als JSON - erwartet: {"stations":[...]}
 GET http://localhost:8080/api/v1/stations
 Accept: application/json
 
-### Dieselben als XML
+### 2. Liste als XML - erwartet: <stations><station>...
 GET http://localhost:8080/api/v1/stations
 Accept: application/xml
 
-### Nicht unterstütztes Format -> 406
+### 3. Einzelne Station als XML - erwartet: <station>...
+GET http://localhost:8080/api/v1/stations/ST-001
+Accept: application/xml
+
+### 4. Messwert als XML - erwartet: <measurement>...
+GET http://localhost:8080/api/v1/stations/ST-001/measurements/latest
+Accept: application/xml
+
+
+############################################################
+# Filter fuer Stationen (Punkt 4)
+############################################################
+
+### 5. Nach Fluss - erwartet: ST-001 und ST-002
+GET http://localhost:8080/api/v1/stations?river=Donau
+Accept: application/json
+
+### 6. Fluss, Schreibweise egal - gleiches Ergebnis wie 5.
+GET http://localhost:8080/api/v1/stations?river=donau
+Accept: application/json
+
+### 7. Nur deaktivierte Stationen - erwartet: ST-004
+GET http://localhost:8080/api/v1/stations?isActive=false
+Accept: application/json
+
+### 8. Nach aktueller Warnstufe
+GET http://localhost:8080/api/v1/stations?warningLevel=NORMAL
+Accept: application/json
+
+### 9. UNKNOWN - erwartet mindestens ST-004 (hat nie gemeldet)
+GET http://localhost:8080/api/v1/stations?warningLevel=UNKNOWN
+Accept: application/json
+
+### 10. Filter kombiniert
+GET http://localhost:8080/api/v1/stations?river=Donau&isActive=true&warningLevel=NORMAL
+Accept: application/json
+
+### 11. Kein Treffer - erwartet: 200 mit leerer Liste, NICHT 404
+GET http://localhost:8080/api/v1/stations?river=Nil
+Accept: application/json
+
+
+############################################################
+# Historische Messwerte (Punkt 4)
+############################################################
+
+### 12. Gesamte Historie
+GET http://localhost:8080/api/v1/stations/ST-001/measurements
+Accept: application/json
+
+### 13. Die 10 neuesten Messwerte, chronologisch sortiert
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?limit=10
+Accept: application/json
+
+### 14. Zeitraum - Grenzen sind inklusive.
+### Zeitpunkte vorher aus Abfrage 12 kopieren, sonst ist das Ergebnis leer.
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?from=2026-05-01T08:00:00Z&to=2026-05-01T12:00:00Z&limit=100
+Accept: application/json
+
+### 15. Nur Messwerte einer bestimmten Warnstufe
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?warningLevel=WARNING
+Accept: application/json
+
+### 16. Historie als XML
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?limit=3
+Accept: application/xml
+
+
+############################################################
+# Warnungen (Punkt 4)
+############################################################
+
+### 17. Alle aktuellen Warnungen, CRITICAL zuerst
+GET http://localhost:8080/api/v1/alerts
+Accept: application/json
+
+### 18. Nur kritische Warnungen
+GET http://localhost:8080/api/v1/alerts?warningLevel=CRITICAL
+Accept: application/json
+
+### 19. Warnungen eines Flusses
+GET http://localhost:8080/api/v1/alerts?river=Donau
+Accept: application/json
+
+### 20. Ausgefallene Stationen - Warnstufe UNKNOWN
+GET http://localhost:8080/api/v1/alerts?warningLevel=UNKNOWN
+Accept: application/json
+
+### 21. NORMAL ist per Definition keine Warnung - erwartet: leere Liste, 200
+GET http://localhost:8080/api/v1/alerts?warningLevel=NORMAL
+Accept: application/json
+
+### 22. Warnungen als XML - erwartet: <alerts><alert>...
+GET http://localhost:8080/api/v1/alerts
+Accept: application/xml
+
+
+############################################################
+# Statistik (Punkt 4)
+############################################################
+
+### 23. Statistik ueber die gesamte Historie
+GET http://localhost:8080/api/v1/stations/ST-001/statistics
+Accept: application/json
+
+### 24. Statistik nur ueber die letzten 20 Messwerte
+GET http://localhost:8080/api/v1/stations/ST-001/statistics?limit=20
+Accept: application/json
+
+### 25. Statistik als XML
+GET http://localhost:8080/api/v1/stations/ST-003/statistics
+Accept: application/xml
+
+### 26. Station ohne Messwerte - erwartet: 200, measurementCount = 0
+GET http://localhost:8080/api/v1/stations/ST-004/statistics
+Accept: application/json
+
+
+############################################################
+# Fehlerbehandlung (Punkt 6)
+############################################################
+
+### 27. Unbekannte Station - erwartet: 404
+GET http://localhost:8080/api/v1/stations/ST-999
+Accept: application/json
+
+### 28. Fehler als XML - erwartet: 404 mit <error>...
+GET http://localhost:8080/api/v1/stations/ST-999
+Accept: application/xml
+
+### 29. from liegt nach to - erwartet: 400
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?from=2026-05-02T00:00:00Z&to=2026-05-01T00:00:00Z
+Accept: application/json
+
+### 30. limit = 0 - erwartet: 400 "muss groesser-gleich 1 sein"
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?limit=0
+Accept: application/json
+
+### 31. Negatives limit - erwartet: 400
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?limit=-5
+Accept: application/json
+
+### 32. limit ueber der Obergrenze 1000 - erwartet: 400
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?limit=99999
+Accept: application/json
+
+### 33. limit ist keine Zahl - erwartet: 400
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?limit=abc
+Accept: application/json
+
+### 34. Ungueltiges Datumsformat - erwartet: 400
+GET http://localhost:8080/api/v1/stations/ST-001/measurements?from=gestern
+Accept: application/json
+
+### 35. Ungueltige Warnstufe - erwartet: 400
+GET http://localhost:8080/api/v1/stations?warningLevel=HOCH
+Accept: application/json
+
+### 36. Nicht unterstuetztes Format - erwartet: 406
 GET http://localhost:8080/api/v1/stations
-Accept: image/png
+Accept: text/csv
+
+### 37. Station ohne Messwerte - erwartet: 404
+GET http://localhost:8080/api/v1/stations/ST-004/measurements/latest
+Accept: application/json
+
+### 38. Ohne Accept-Header - erwartet: JSON als Standard
+GET http://localhost:8080/api/v1/stations

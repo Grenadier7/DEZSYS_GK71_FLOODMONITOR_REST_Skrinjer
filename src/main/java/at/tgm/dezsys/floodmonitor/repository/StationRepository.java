@@ -31,6 +31,13 @@ public class StationRepository {
      * Startdaten. Der Konstruktor einer Bean laeuft beim Hochfahren des
      * Application Context, also bevor der erste Request ankommt.
      * (Alternative waere eine eigene Methode mit {@code @PostConstruct}.)
+     * <p>
+     * Drei aktive Stationen sind das Minimum aus der Angabe. ST-004 kommt
+     * dazu, damit {@code isActive == false} nicht nur ein Feld im Datenmodell
+     * ist, sondern ein Fall, den man an der API sehen kann: die Station
+     * erscheint unter {@code /stations?isActive=false}, bekommt vom Simulator
+     * nie einen Messwert, liefert bei {@code /measurements/latest} einen 404
+     * und zaehlt bei {@code ?warningLevel=UNKNOWN} mit.
      */
     public StationRepository() {
         save(new Station("ST-001", "Donau Wien-Nussdorf", "Donau",
@@ -39,6 +46,8 @@ public class StationRepository {
                 new Location(48.4100, 15.6000), 265.0, 300.0, 350.0, true));
         save(new Station("ST-003", "Traisen St. Poelten", "Traisen",
                 new Location(48.2000, 15.6300), 120.0, 150.0, 190.0, true));
+        save(new Station("ST-004", "Ybbs Amstetten (ausser Betrieb)", "Ybbs",
+                new Location(48.1200, 14.8700), 95.0, 130.0, 170.0, false));
     }
 
     public void save(Station station) {

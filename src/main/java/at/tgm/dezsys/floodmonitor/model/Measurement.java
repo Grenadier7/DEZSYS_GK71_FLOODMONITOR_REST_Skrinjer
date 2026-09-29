@@ -1,5 +1,7 @@
 package at.tgm.dezsys.floodmonitor.model;
 
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import java.time.Instant;
 
 /**
@@ -16,6 +18,7 @@ import java.time.Instant;
  * @param batteryLevel Akkustand der Station in Prozent (0-100)
  * @param warningLevel serverseitig berechnet, nie vom Client vorgegeben
  */
+@JacksonXmlRootElement(localName = "measurement")
 public record Measurement(
         String stationId,
         Instant timestamp,
