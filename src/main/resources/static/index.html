@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--
+  Webclient des Hochwasser-Fruehwarnsystems (Angabe Punkt 7).
+
+  Liegt unter src/main/resources/static/ und wird von Spring Boot automatisch
+  unter / ausgeliefert. Dadurch laeuft der Client auf derselben Herkunft
+  (Origin) wie die API - es gibt keine CORS-Problematik und keine Notwendigkeit
+  fuer @CrossOrigin oder einen Proxy.
+-->
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hochwasser-Fruehwarnsystem</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="topbar-inner">
+        <h1>Hochwasser-Fr&uuml;hwarnsystem</h1>
+        <div class="topbar-right">
+            <fieldset class="format">
+                <legend>Datenformat</legend>
+                <label><input type="radio" name="format" value="json" checked> JSON</label>
+                <label><input type="radio" name="format" value="xml"> XML</label>
+            </fieldset>
+            <label class="autorefresh">
+                <input type="checkbox" id="autoRefresh" checked>
+                Autom. aktualisieren
+                <select id="refreshInterval">
+                    <option value="5">5 s</option>
+                    <option value="10" selected>10 s</option>
+                    <option value="30">30 s</option>
+                </select>
+            </label>
+        </div>
+    </div>
+    <div id="statusBar" class="statusbar">
+        <span id="loading" class="loading" hidden>L&auml;dt &hellip;</span>
+        <span id="lastUpdate" class="muted"></span>
+        <span id="formatNote" class="muted"></span>
+    </div>
+</header>
+
+<!-- Fehlermeldungen. Ein Element fuer alle Fehler, damit nie zwei
+     widerspruechliche Meldungen gleichzeitig stehen. -->
+<div id="errorBox" class="errorbox" hidden>
+    <strong>Fehler:</strong> <span id="errorText"></span>
+    <button type="button" id="errorClose" aria-label="Meldung schlie&szlig;en">&times;</button>
+</div>
+
+<noscript class="errorbox">
+    Dieser Client braucht JavaScript.
+</noscript>
+
+<main>
+
+    <!-- ============ Aktuelle Warnungen ============ -->
+    <section class="card">
+        <h2>Aktuelle Warnungen <span class="hint">GET /api/v1/alerts</span></h2>
+        <div class="filterrow">
+            <label>Warnstufe
+                <select id="alertLevel">
+                    <option value="">alle au&szlig;er NORMAL</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="UNKNOWN">UNKNOWN</option>
+                </select>
+            </label>
+            <label>Fluss
+                <select id="alertRiver">
+                    <option value="">alle</option>
+                </select>
+            </label>
+        </div>
+        <div id="alertList" class="alertlist"></div>
+    </section>
+
+    <!-- ============ Station und aktueller Messwert ============ -->
+    <section class="card">
+        <h2>Messstation <span class="hint">GET /api/v1/stations/{id}/measurements/latest</span></h2>
+        <div class="filterrow">
+            <label>Station
+                <select id="stationSelect"></select>
+            </label>
+            <label>Nur Fluss
+                <select id="stationRiver">
+                    <option value="">alle</option>
+                </select>
+            </label>
+            <label class="checkline">
+                <input type="checkbox" id="onlyActive" checked> nur aktive Stationen
+            </label>
+        </div>
+
+        <div id="stationInfo" class="stationinfo"></div>
+        <div id="latestBox" class="latestbox"></div>
+    </section>
+
+    <!-- ============ Historie ============ -->
+    <section class="card">
+        <h2>Historische Messwerte <span class="hint">GET /api/v1/stations/{id}/measurements</span></h2>
+
+        <form id="historyFilter" class="filterrow">
+            <label>Von
+                <input type="datetime-local" id="from" step="1">
+            </label>
+            <label>Bis
+                <input type="datetime-local" id="to" step="1">
+            </label>
+            <label>Warnstufe
+                <select id="historyLevel">
+                    <option value="">alle</option>
+                    <option value="NORMAL">NORMAL</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                    <option value="UNKNOWN">UNKNOWN</option>
+                </select>
+            </label>
+            <label>Anzahl
+                <input type="number" id="limit" value="25" min="1" max="1000">
+            </label>
+            <button type="submit">Anwenden</button>
+            <button type="button" id="resetFilter" class="secondary">Zur&uuml;cksetzen</button>
+        </form>
+
+        <!-- Statistik zur gefilterten Menge -->
+        <div id="statsBox" class="statsbox"></div>
+
+        <div class="tablewrap">
+            <table id="historyTable">
+                <thead>
+                <tr>
+                    <th>Station</th>
+                    <th>Zeitpunkt</th>
+                    <th class="num">Wasserstand<br><span class="unit">cm</span></th>
+                    <th class="num">Durchflussmenge<br><span class="unit">m&sup3;/s</span></th>
+                    <th class="num">Niederschlag<br><span class="unit">mm/h</span></th>
+                    <th class="num">Akkustand<br><span class="unit">%</span></th>
+                    <th>Stationsstatus</th>
+                    <th>Warnstufe</th>
+                </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+        <p id="historyEmpty" class="muted" hidden>Keine Messwerte f&uuml;r diese Auswahl.</p>
+    </section>
+
+</main>
+
+<footer class="muted">
+    DEZSYS GK71 &middot; Webclient zur REST-Schnittstelle &middot;
+    <a href="/swagger-ui.html">API-Dokumentation</a>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+<!--
+  Fallback, falls jQuery nicht geladen werden konnte (kein Internet).
+  Ohne diese Pruefung wuerde die Seite einfach nichts tun und der Benutzer
+  saehe eine leere Oberflaeche ohne Hinweis auf die Ursache.
+-->
+<script>
+    if (!window.jQuery) {
+        document.getElementById('errorText').textContent =
+            'jQuery konnte nicht vom CDN geladen werden. Ohne Internetverbindung '
+            + 'muss jQuery lokal unter static/js/jquery.min.js abgelegt und in '
+            + 'index.html eingebunden werden.';
+        document.getElementById('errorBox').hidden = false;
+    }
+</script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
