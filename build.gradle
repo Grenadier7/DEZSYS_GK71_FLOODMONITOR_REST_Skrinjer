@@ -29,6 +29,15 @@ dependencies {
     // mehr verwaltet und haette keine Version.
     implementation 'tools.jackson.dataformat:jackson-dataformat-xml'
 
+    // OpenAPI-Dokumentation (Angabe Punkt 10). Liest die Controller zur Laufzeit
+    // aus und liefert /v3/api-docs sowie die Swagger-UI unter /swagger-ui.html.
+    //
+    // Version 3.x ist die Linie fuer Spring Boot 4 / Spring Framework 7. Die
+    // verbreitete 2.x-Linie ist auf Boot 3 gebaut und scheitert hier beim Start.
+    // Die Version steht explizit da, weil springdoc nicht vom Boot-BOM
+    // verwaltet wird - ohne Angabe gaebe es keine Version.
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
+
     // DevTools bewusst deaktiviert: sein Restart-Watcher haelt unter Windows
     // Verzeichnis-Handles auf build/classes/java/main und blockiert damit das
     // Loeschen durch "clean". Ohne Auto-Build bringt DevTools ohnehin keinen
