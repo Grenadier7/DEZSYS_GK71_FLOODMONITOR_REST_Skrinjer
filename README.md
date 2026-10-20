@@ -145,6 +145,8 @@ floodmonitor/
 ├── build.gradle                        Abhängigkeiten und Build
 ├── README.md                           dieses Dokument
 ├── test.http                           38 manuelle Testaufrufe (IntelliJ HTTP-Client)
+├── docs/
+│   └── ai-prompts.md                   Dokumentation der verwendeten KI-Prompts
 └── src/
     ├── main/
     │   ├── java/at/tgm/dezsys/floodmonitor/
@@ -941,7 +943,6 @@ Ehrlich benannt, statt vorzutäuschen, es sei alles abgedeckt:
 * **Screenshots des Webclients** fehlen noch in der Abgabe.
 * **Die zwölf Fragestellungen** aus Punkt 12 der Angabe sind noch nicht
   beantwortet (Quellverweise erforderlich).
-* **Dokumentation der AI-Prompts** fehlt noch.
 * **Deprecation-Warnung:** `@JacksonXmlRootElement` ist in Jackson 3 als veraltet
   markiert; der vorgesehene Ersatz ist `@JsonRootName`. Funktioniert derzeit
   fehlerfrei.
